@@ -1,27 +1,85 @@
-// client/src/pages/Register.jsx
 import { useState } from 'react';
+import SkillsSelector from '../components/SkillsSector';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', whatsapp: '', skills: '' });
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
 
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const finalData = {
+      ...formData,
+      skills: selectedSkills,
+    };
+
+    console.log('Submitting:', finalData);
+
+    // 🔄 Replace with your backend API call:
+    try {
+      const res = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(finalData),
+      });
+
+      const data = await res.json();
+      console.log('Server Response:', data);
+    } catch (err) {
+      console.error('Registration Error:', err);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">Create an Account</h2>
-        <form className="space-y-4">
-          <input name="name" type="text" placeholder="Name" onChange={handleChange} className="w-full border p-2 rounded" />
-          <input name="email" type="email" placeholder="Email" onChange={handleChange} className="w-full border p-2 rounded" />
-          <input name="whatsapp" type="text" placeholder="WhatsApp Number" onChange={handleChange} className="w-full border p-2 rounded" />
-          <input name="skills" type="text" placeholder="Skills (e.g. React, Java)" onChange={handleChange} className="w-full border p-2 rounded" />
-          <button type="submit" className="bg-blue-600 w-full text-white py-2 rounded hover:bg-blue-700 transition">
-            Register
-          </button>
-        </form>
-      </div>
+    <div className="max-w-2xl mx-auto pt-20 p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-2xl font-bold text-center mb-6">Register</h1>
+      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded shadow">
+        <input
+          name="name"
+          type="text"
+          placeholder="Full Name"
+          className="w-full px-4 py-2 border rounded"
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="email"
+          type="email"
+          placeholder="Email"
+          className="w-full px-4 py-2 border rounded"
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="password"
+          type="password"
+          placeholder="Password"
+          className="w-full px-4 py-2 border rounded"
+          onChange={handleChange}
+          required
+        />
+
+        <SkillsSelector
+          selectedSkills={selectedSkills}
+          setSelectedSkills={setSelectedSkills}
+        />
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+        >
+          Register
+        </button>
+      </form>
     </div>
   );
 };
