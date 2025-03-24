@@ -1,14 +1,33 @@
-// src/components/Navbar.jsx
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+// lucide-react is library for icons
+import { Menu,  X } from 'lucide-react';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
   const [dropdown, setDropdown] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // change to false if testing logged-out state
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Set according to auth
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleMenu = () => setOpen(!open);
+
+  // Click outside dropdown to close
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setDropdown(false);
+    navigate('/');
+  };
 
   return (
     <nav className="bg-white shadow-md fixed w-full z-50">
@@ -32,22 +51,32 @@ const Navbar = () => {
             )}
 
             {isLoggedIn && (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <img
                   src="https://i.pravatar.cc/40"
                   alt="avatar"
                   className="w-8 h-8 rounded-full cursor-pointer"
                   onClick={() => setDropdown(!dropdown)}
                 />
-                {dropdown && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white shadow rounded z-10">
-                    <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
-                    <button className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
-                      onClick={() => setIsLoggedIn(false)}>
-                      Logout
-                    </button>
-                  </div>
-                )}
+                <div
+                  className={`absolute right-0 mt-2 w-40 bg-white shadow rounded z-10 transition-all duration-200 ${
+                    dropdown ? 'opacity-100 visible' : 'opacity-0 invisible'
+                  }`}
+                >
+                  <Link
+                    to="/profile"
+                    onClick={() => setDropdown(false)}
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Profile
+                  </Link>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -63,7 +92,7 @@ const Navbar = () => {
 
       {/* Mobile Dropdown */}
       {open && (
-        <div className="md:hidden bg-white px-4 pt-2 pb-4 space-y-2">
+        <div className="md:hidden bg-white px-4 pt-2 pb-4 space-y-2 shadow-sm">
           <Link to="/" onClick={toggleMenu} className="block text-gray-700">Home</Link>
 
           {isLoggedIn && (
@@ -82,8 +111,8 @@ const Navbar = () => {
               <Link to="/profile" onClick={toggleMenu} className="block text-gray-700">Profile</Link>
               <button
                 onClick={() => {
-                  setIsLoggedIn(false);
                   setOpen(false);
+                  handleLogout();
                 }}
                 className="block w-full text-left text-red-500"
               >
